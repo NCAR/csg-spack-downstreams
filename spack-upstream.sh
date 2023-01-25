@@ -104,13 +104,14 @@ else
         if [ $MOD == 'y' ]; then
             modify_rc
             exit 0
-        elif [ $MOD == 'n']; then
+        elif [ $MOD == 'n' ]; then
             echo "To initialize your shell for spack use please run the command:"
             echo ". $INSTALL_DIR/share/spack/setup-env.sh"
             exit 0
         else
             echo "Please select (y)es|(n)o"
-        done
+        fi
+    done
 fi
 
 # https://github.com/NCAR/csg-spack-fork
