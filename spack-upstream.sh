@@ -50,9 +50,9 @@ modify_rc () {
     log "echo '. $INSTALL_DIR/share/spack/setup-env.sh' >> ~/.bashrc"
     log "echo '# SPACK UPSTREAMS DONE' >> ~/.bashrc"
 
-    echo '# SPACK UPSTREAMS INITIALIZE' >> ~/.bashrc
-    echo '. $INSTALL_DIR/share/spack/setup-env.sh' >> ~/.bashrc
-    echo '# SPACK UPSTREAMS DONE' >> ~/.bashrc
+    echo "# SPACK UPSTREAMS INITIALIZE" >> ~/.bashrc
+    echo ". $INSTALL_DIR/share/spack/setup-env.sh" >> ~/.bashrc
+    echo "# SPACK UPSTREAMS DONE" >> ~/.bashrc
 
     echo '...complete!'
 }
@@ -72,7 +72,7 @@ do
 done
 
 # Temporary Version Identifier
-if [ -z VERSION]; then
+if [ -z $VERSION ]; then
     VERSION=$(echo "$(/glade/u/apps/gust/default/spack/bin/spack --version | grep -o '[0-9]*\.[0-9]*\.[0-9]*')") 
 fi
 echo "Spack version: $VERSION"
@@ -94,7 +94,7 @@ echo "Spack has been successfully installed and configure for upstream use in: $
 
 if [ "MODIFY_RC" = "True" ]; then
     modify_rc
-elif [ "MODIFY_RC" = "False"]; then
+elif [ "MODIFY_RC" = "False" ]; then
     exit 0
 else
     echo "Would you like this installer to automatically initialize spack on log in by modifying .bashrc?"
