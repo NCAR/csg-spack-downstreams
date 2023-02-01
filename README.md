@@ -10,6 +10,13 @@ Once the installation has completed, spack-upstreams will attempt to modify the 
 If the user chooses to skip this option, on login they will need to run:
 `<install-directory>/share/spack/setup-env.sh`
 
+## Optional flags:
+```
+       -v | --verbose                  : print out each installation step to the terminal
+            --prefix=<install-path>    : specify spack installation location. Default: /glade/work/mtrahan/spack_version  
+       -h | --help                     : print this message
+```
+
 ## Know bugs:
 - No tcsh or csh support yet.
 - The script will fail if a folder named spack-<install-version> currently exists in your work or chosen directory. Error checking and overwriting will be implemented as options in the future.
