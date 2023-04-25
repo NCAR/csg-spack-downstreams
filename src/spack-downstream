@@ -34,13 +34,13 @@ copy_yaml () {
     # Check to see if upstreams has been created. If not create it and fill it with the following values.
     if [ ! -f "$INSTALL_DIR/etc/spack/upstreams.yaml" ]; then
         log "$INSTALL_DIR/bin/spack config add 'upstreams:spack-instance-1:install_tree:/glade/u/apps/gust/$VERSION/spack/opt/spack/"
-        $INSTALL_DIR/bin/spack config add 'upstreams:spack-instance-1:install_tree:/glade/u/apps/gust/$VERSION/spack/opt/spack/'
+        $INSTALL_DIR/bin/spack config add "upstreams:spack-instance-1:install_tree:/glade/u/apps/gust/$VERSION/spack/opt/spack/"
     fi
 
     # Modify modiles.yaml to add new lmod root
     if [ -f "$INSTALL_DIR/etc/spack/modules.yaml" ]; then
 	log "$INSTALL_DIR/bin/spack config add 'modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/modules/$VERSION'"
-	$INSTALL_DIR/bin/spack config add 'modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/modules/$VERSION'
+	$INSTALL_DIR/bin/spack config add "modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/modules/$VERSION"
     fi
 }
 
@@ -103,7 +103,7 @@ git clone -c feature.manyFiles=true https://github.com/NCAR/csg-spack-fork $INST
 copy_yaml 
 
 # Modify bashrc
-echo "Spack has been successfully installed and configure for upstream use in: $INSTALL_DIR"
+echo "Spack has been successfully installed and configure for downstream use in: $INSTALL_DIR"
 
 if [ "$MODIFY_RC" = "True" ]; then
     modify_rc
@@ -116,7 +116,8 @@ else
         read MOD
         if [ "$MOD" == 'y' ]; then
             modify_rc
-            exit 0
+            echo "Modification successful! Please restart your shell to apply changes"
+	    exit 0
         elif [ "$MOD" == 'n' ]; then
             echo "To initialize your shell for spack use please run the command:"
             echo ". $INSTALL_DIR/share/spack/setup-env.sh"
