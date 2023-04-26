@@ -1,24 +1,29 @@
 #!/bin/bash
 
 # Spack Upstream installation script
+#
+#
 
+# Simple printing function
 print_usage () {
     echo "spack-downstreams: Script to set up a local spack instance and link it to the upstream system spack"
     echo "usage:"
     echo "       -v | --verbose                  : print out each installation step to the terminal"
-    echo "            --prefix=<install-path>    : specify spack installation location. Default: /glade/work/$USER/spack_<version>"
+    echo "            --prefix=<install-path>    : specify spack installation location. Default: /glade/work/$USER/ncarenv-$VERSION"
     echo "            --version=<install-path>   : specify ncarenv version. Default: default"
     echo "            --modify-rc=<True|False>   : modify your startup script to automatically load Spack at startup"
     echo "       -h | --help                     : print this message"
     
 }
 
+# Simple logging function
 log () {
     if [ "$VERBOSE" = "True" ]; then
         echo "$@"
     fi
 }
 
+# Copy system yaml information
 copy_yaml () {
      # Check to see if yaml files exist. If not clone them to the directory.
     for file in compilers.yaml mirrors.yaml packages.yaml repos.yaml modules.yaml; do
@@ -44,6 +49,30 @@ copy_yaml () {
     fi
 }
 
+# Check for existing RC modifications from previous spack-downstream installs
+check_rc () {
+    log export CHECK_INSTALL=$(egrep -c "SPACK DOWNSTREAMS INITIALIZE" ~/.bashrc)
+    export CHECK_INSTALL=$(egrep -c "SPACK DOWNSTREAMS INITIALIZE" ~/.bashrc) 
+    if [ "$CHECK_INSTALL" -ge "1" ]; then
+        echo "Spack downstreams has detected an existing installation of spack downstreams in your bashrc. (r)eplace|(s)kip"
+        while true; do
+	    read UINPUT
+            if [ "$UINPUT" == "r" ]; then
+                log sed -i '/SPACK DOWNSTREAMS INITIALIZE/,/SPACK DOWNSTREAMS DONE/d' ~/.bashrc
+                sed -i '/SPACK DOWNSTREAMS INITIALIZE/,/SPACK DOWNSTREAMS DONE/d' ~/.bashrc
+                break	
+            elif [ "$UINPUT" == "s" ]; then
+                echo "Skipping... To initialize this installation, please run:"
+		echo ". $INSTALL_DIR/share/spack/setup-env.sh"
+		exit 0
+            else
+                echo "Please select (r)eplace|(s)kip"
+	    fi
+        done
+    fi 
+}
+
+# Modify User RC
 modify_rc () {
     echo "Modifying bashrc..."
 
@@ -81,7 +110,6 @@ if [ -z "$VERSION" ]; then
     else
 	echo "spack-downstream error: No ncarenv detected. Load a ncarenv before attempting to run spack upstream or set a requested version with --version"
     fi
-
 fi
 echo "ncarenv version: $VERSION"
 
@@ -94,10 +122,12 @@ fi
 echo "prefix: $INSTALL_DIR"
 
 # Clone repo
-
 log "git clone -c feature.manyFiles=true https://github.com/NCAR/csg-spack-fork $INSTALL_DIR"
 git clone -c feature.manyFiles=true https://github.com/NCAR/csg-spack-fork $INSTALL_DIR
-
+if [ ! $? -eq 0 ]; then
+     echo "spack-downstream error: Installation directory at: $INSTALL_DIR is not empty. Please select an empty directory to install this application."
+     exit 0
+fi
 
 # Copy YAML files
 copy_yaml 
@@ -106,6 +136,7 @@ copy_yaml
 echo "Spack has been successfully installed and configure for downstream use in: $INSTALL_DIR"
 
 if [ "$MODIFY_RC" = "True" ]; then
+    check_rc
     modify_rc
 elif [ "$MODIFY_RC" = "False" ]; then
     exit 0
@@ -115,7 +146,8 @@ else
     while true; do
         read MOD
         if [ "$MOD" == 'y' ]; then
-            modify_rc
+            check_rc
+	    modify_rc
             echo "Modification successful! Please restart your shell to apply changes"
 	    exit 0
         elif [ "$MOD" == 'n' ]; then
@@ -128,4 +160,3 @@ else
     done
 fi
 
-# https://github.com/NCAR/csg-spack-fork
