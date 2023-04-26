@@ -8,11 +8,11 @@
 print_usage () {
     echo "spack-downstreams: Script to set up a local spack instance and link it to the upstream system spack"
     echo "usage:"
-    echo "       -v | --verbose                  : print out each installation step to the terminal"
-    echo "            --prefix=<install-path>    : specify spack installation location. Default: /glade/work/$USER/ncarenv-$VERSION"
-    echo "            --version=<install-path>   : specify ncarenv version. Default: default"
-    echo "            --modify-rc=<True|False>   : modify your startup script to automatically load Spack at startup"
-    echo "       -h | --help                     : print this message"
+    echo "       -v | --verbose                   : print out each installation step to the terminal"
+    echo "            --prefix=<install-path>     : specify spack installation location. Default: /glade/work/$USER/ncarenv-$VERSION"
+    echo "            --version=<ncarenv-version> : specify ncarenv version. Default: default"
+    echo "            --modify-rc=<True|False>    : modify your startup script to automatically load Spack at startup"
+    echo "       -h | --help                      : print this message"
     
 }
 
