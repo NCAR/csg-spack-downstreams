@@ -23,6 +23,31 @@ log () {
     fi
 }
 
+clone_repo () {
+    log "git config --global --add safe.directory /glade/u/apps/gust/$VERSION/spack"
+    log "cd /glade/u/apps/gust/$VERSION/spack"
+    log "export GIT_COMMIT=$(git rev-parse HEAD)"
+    log "cd - > /dev/null"
+    log "git clone -c feature.manyFiles=true https://github.com/NCAR/csg-spack-fork $INSTALL_DIR"
+    log "cd $INSTALL_DIR"
+    log "git checkout $GIT_COMMIT"
+    log "cd - > /dev/null"
+
+    git config --global --add safe.directory /glade/u/apps/gust/$VERSION/spack
+    cd /glade/u/apps/gust/$VERSION/spack
+    export GIT_COMMIT=$(git rev-parse HEAD)
+    cd - > /dev/null
+    git clone -c feature.manyFiles=true https://github.com/NCAR/csg-spack-fork $INSTALL_DIR
+    if [ ! $? -eq 0 ]; then
+         echo "spack-downstream error: Installation directory at: $INSTALL_DIR is not empty. Please select an empty directory to install this application."
+         exit 0
+    fi
+    
+    cd $INSTALL_DIR
+    git reset --hard $GIT_COMMIT
+    cd - > /dev/null
+}
+
 # Copy system yaml information
 copy_yaml () {
      # Check to see if yaml files exist. If not clone them to the directory.
@@ -122,12 +147,7 @@ fi
 echo "prefix: $INSTALL_DIR"
 
 # Clone repo
-log "git clone -c feature.manyFiles=true https://github.com/NCAR/csg-spack-fork $INSTALL_DIR"
-git clone -c feature.manyFiles=true https://github.com/NCAR/csg-spack-fork $INSTALL_DIR
-if [ ! $? -eq 0 ]; then
-     echo "spack-downstream error: Installation directory at: $INSTALL_DIR is not empty. Please select an empty directory to install this application."
-     exit 0
-fi
+clone_repo
 
 # Copy YAML files
 copy_yaml 
