@@ -21,4 +21,4 @@ If the user chooses to skip this option, on login they will need to run:
 
 ## Know bugs:
 - No tcsh or csh support yet.
-- The script will fail if a folder named spack-<install-version> currently exists in your work or chosen directory. Error checking and overwriting will be implemented as options in the future.
+
