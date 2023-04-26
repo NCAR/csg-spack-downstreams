@@ -12,10 +12,11 @@ If the user chooses to skip this option, on login they will need to run:
 
 ## Optional flags:
 ```
-       -v | --verbose                  : print out each installation step to the terminal
-            --prefix=<install-path>    : specify spack installation location. Default: /glade/work/mtrahan/spack_version  
-            --modify-rc=<True|False>.  : modify .bashrc to load Spack at startup
-       -h | --help                     : print this message
+       -v | --verbose                   : print out each installation step to the terminal
+            --prefix=<install-path>     : specify spack installation location. Default: /glade/work/mtrahan/spack_version  
+            --modify-rc=<True|False>.   : modify .bashrc to load Spack at startup
+            --version=<ncarenv-version> : specify ncarenv version. Default: default
+       -h | --help                      : print this message
 ```
 
 ## Know bugs:
