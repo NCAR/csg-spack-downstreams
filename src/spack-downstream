@@ -74,8 +74,8 @@ copy_yaml () {
 
     # Modify modiles.yaml to add new lmod root
     if [ -f "$INSTALL_DIR/etc/spack/modules.yaml" ]; then
-	log "$INSTALL_DIR/bin/spack config add 'modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/modules/$VERSION'"
-	$INSTALL_DIR/bin/spack config add "modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/modules/$VERSION"
+	log "$INSTALL_DIR/bin/spack config add 'modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/$NCAR_HOST/modules/$VERSION'"
+	$INSTALL_DIR/bin/spack config add "modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/$NCAR_HOST/modules/$VERSION"
     fi
 }
 
@@ -145,7 +145,7 @@ echo "ncarenv version: $VERSION"
 
 # Set install path
 if [ -z "$PREFIX" ]; then
-    INSTALL_DIR="/glade/work/$USER/spack-downstreams/ncarenv-$VERSION"
+    INSTALL_DIR="/glade/work/$USER/spack-downstreams/$NCAR_HOST/$VERSION"
 else
     INSTALL_DIR=$PREFIX
 fi
