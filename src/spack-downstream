@@ -51,10 +51,15 @@ clone_repo () {
 # Copy system yaml information
 copy_yaml () {
      # Check to see if yaml files exist. If not clone them to the directory.
-    for file in compilers.yaml mirrors.yaml packages.yaml repos.yaml modules.yaml; do
+    for file in config.yaml compilers.yaml mirrors.yaml packages.yaml repos.yaml modules.yaml; do
         if [ ! -f "$INSTALL_DIR/etc/spack/$file" ]; then
-            log "cp /glade/u/apps/gust/default/config/$file $INSTALL_DIR/etc/spack"
-            cp /glade/u/apps/gust/default/config/$file $INSTALL_DIR/etc/spack
+            log "cp /glade/u/apps/$NCAR_HOST/default/config/$file $INSTALL_DIR/etc/spack"
+            cp /glade/u/apps/$NCAR_HOST/default/config/$file $INSTALL_DIR/etc/spack
+
+            if [ $file == modules.yaml ]; then
+                log "sed -i '/ncar_.*\.lua/ s/ncar/user/' $INSTALL_DIR/etc/spack/$file"
+                sed -i '/ncar_.*\.lua/ s/ncar/user/' $INSTALL_DIR/etc/spack/$file
+            fi
         fi
     done
 
@@ -63,14 +68,14 @@ copy_yaml () {
 
     # Check to see if upstreams has been created. If not create it and fill it with the following values.
     if [ ! -f "$INSTALL_DIR/etc/spack/upstreams.yaml" ]; then
-        log "$INSTALL_DIR/bin/spack config add 'upstreams:spack-instance-1:install_tree:/glade/u/apps/gust/$VERSION/spack/opt/spack/"
-        $INSTALL_DIR/bin/spack config add "upstreams:spack-instance-1:install_tree:/glade/u/apps/gust/$VERSION/spack/opt/spack/"
+        log "$INSTALL_DIR/bin/spack config add 'upstreams:spack-instance-1:install_tree:/glade/u/apps/$NCAR_HOST/$VERSION/spack/opt/spack/"
+        $INSTALL_DIR/bin/spack config add "upstreams:spack-instance-1:install_tree:/glade/u/apps/$NCAR_HOST/$VERSION/spack/opt/spack/"
     fi
 
     # Modify modiles.yaml to add new lmod root
     if [ -f "$INSTALL_DIR/etc/spack/modules.yaml" ]; then
-	log "$INSTALL_DIR/bin/spack config add 'modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/modules/$VERSION'"
-	$INSTALL_DIR/bin/spack config add "modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/modules/$VERSION"
+	log "$INSTALL_DIR/bin/spack config add 'modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/$NCAR_HOST/modules/$VERSION'"
+	$INSTALL_DIR/bin/spack config add "modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/$NCAR_HOST/modules/$VERSION"
     fi
 }
 
@@ -140,7 +145,7 @@ echo "ncarenv version: $VERSION"
 
 # Set install path
 if [ -z "$PREFIX" ]; then
-    INSTALL_DIR="/glade/work/$USER/spack/ncarenv-$VERSION"
+    INSTALL_DIR="/glade/work/$USER/spack-downstreams/$NCAR_HOST/$VERSION"
 else
     INSTALL_DIR=$PREFIX
 fi
