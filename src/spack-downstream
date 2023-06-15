@@ -6,14 +6,36 @@
 
 # Simple printing function
 print_usage () {
-    echo "spack-downstreams: Script to set up a local spack instance and link it to the upstream system spack"
-    echo "usage:"
-    echo "       -v | --verbose                   : print out each installation step to the terminal"
-    echo "            --prefix=<install-path>     : specify spack installation location. Default: /glade/work/$USER/ncarenv-$VERSION"
-    echo "            --version=<ncarenv-version> : specify ncarenv version. Default: default"
-    echo "            --modify-rc=<True|False>    : modify your startup script to automatically load Spack at startup"
-    echo "       -h | --help                      : print this message"
-    
+    if [ "$__INSTALL" == "True" ]; then
+        echo "spack-downstreams install: Subcommand to set up a local spack instance and link it to the upstream system spack"
+        echo "Options:"
+        echo "       -v | --verbose                     : print out each installation step to the terminal"
+        echo "            --prefix=<install-path>       : specify spack installation location. Default: /glade/work/$USER/ncarenv-$VERSION"
+        echo "            --version=<ncarenv-version>   : specify ncarenv version. Default: default"
+        echo "            --modify-rc=<True|False>      : modify your startup script to automatically load Spack at startup"
+        echo "       -h | --help                        : print this message"
+#    elif [ "$__MODIFY" == "True"]; then
+#        echo "spack-downstreams install: Subcommand to remove an existing spack upstreams installation"
+#        echo "Options:"
+#        echo "       -v | --verbose                     : print out each installation step to the terminal"
+#        echo "            --install-path=<install-path> : target spack installation location. Default: /glade/work/$USER/ncarenv-$VERSION"
+#        echo "       -h | --help                        : print this message"
+    elif [ "$__REMOVE" == "True" ]; then
+        echo "spack-downstreams install: Subcommand to remove an existing spack upstreams installation"
+        echo "Options:"
+        echo "       -v | --verbose                     : print out each installation step to the terminal"
+        echo "            --install-path=<install-path> : target spack installation location. Default: /glade/work/$USER/ncarenv-$VERSION"
+        echo "       -h | --help                        : print this message"
+    else
+        echo "spack-downstreams: Application which manages a users downstream spack installation"
+        echo "Subcommands:"
+        echo "       install                            : Install a downstream spack instance"
+#        echo "       modify                             : Modify a downstream spack installation"
+        echo "       remove                             : Remove a spack downstream installation"
+        echo "For more information on options related to a specific subcommand, run: spack-upstreams <subcommand> --help"
+        echo "Options:"
+        echo "       -h | --help                        : print this message"
+    fi   
 }
 
 # Simple logging function
@@ -24,8 +46,8 @@ log () {
 }
 
 clone_repo () {
-    log "git config --global --add safe.directory /glade/u/apps/gust/$VERSION/spack"
-    log "cd /glade/u/apps/gust/$VERSION/spack"
+    log "git config --global --add safe.directory /glade/u/apps/$NCAR_HOST/$VERSION/spack"
+    log "cd /glade/u/apps/$NCAR_HOST/$VERSION/spack"
     log "export GIT_COMMIT=$(git rev-parse HEAD)"
     log "cd - > /dev/null"
     log "git clone -c feature.manyFiles=true https://github.com/NCAR/csg-spack-fork $INSTALL_DIR"
@@ -33,8 +55,8 @@ clone_repo () {
     log "git checkout $GIT_COMMIT"
     log "cd - > /dev/null"
 
-    git config --global --add safe.directory /glade/u/apps/gust/$VERSION/spack
-    cd /glade/u/apps/gust/$VERSION/spack
+    git config --global --add safe.directory /glade/u/apps/$NCAR_HOST/$VERSION/spack
+    cd /glade/u/apps/$NCAR_HOST/$VERSION/spack
     export GIT_COMMIT=$(git rev-parse HEAD)
     cd - > /dev/null
     git clone -c feature.manyFiles=true https://github.com/NCAR/csg-spack-fork $INSTALL_DIR
@@ -42,7 +64,6 @@ clone_repo () {
          echo "spack-downstream error: Installation directory at: $INSTALL_DIR is not empty. Please select an empty directory to install this application."
          exit 0
     fi
-    
     cd $INSTALL_DIR
     git reset --hard $GIT_COMMIT
     cd - > /dev/null
@@ -74,8 +95,8 @@ copy_yaml () {
 
     # Modify modiles.yaml to add new lmod root
     if [ -f "$INSTALL_DIR/etc/spack/modules.yaml" ]; then
-	log "$INSTALL_DIR/bin/spack config add 'modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/$NCAR_HOST/modules/$VERSION'"
-	$INSTALL_DIR/bin/spack config add "modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/$NCAR_HOST/modules/$VERSION"
+	    log "$INSTALL_DIR/bin/spack config add 'modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/$NCAR_HOST/modules/$VERSION'"
+	    $INSTALL_DIR/bin/spack config add "modules:default:roots:lmod:/glade/work/$USER/spack-downstreams/$NCAR_HOST/modules/$VERSION"
     fi
 }
 
@@ -83,7 +104,7 @@ copy_yaml () {
 check_rc () {
     log export CHECK_INSTALL=$(egrep -c "SPACK DOWNSTREAMS INITIALIZE" ~/.bashrc)
     export CHECK_INSTALL=$(egrep -c "SPACK DOWNSTREAMS INITIALIZE" ~/.bashrc) 
-    if [ "$CHECK_INSTALL" -ge "1" ]; then
+    if [ "$CHECK_INSTALL" -ge 1 ]; then
         echo "Spack downstreams has detected an existing installation of spack downstreams in your bashrc. (r)eplace|(s)kip"
         while true; do
 	    read UINPUT
@@ -119,69 +140,111 @@ modify_rc () {
     echo '...complete!'
 }
 
-# Simple flag parser
-while [ "$#" -gt 0 ]
-do
-    case "${1}" in
-	(--prefix=?*)     PREFIX="$(echo ${1} | cut -f 2 -d '=')" ;;
-        (-v | --verbose)  VERBOSE="True" ;;
-	(-h | --help)     print_usage; exit 0 ;;
-	(--modify-rc=?*)  MODIFY_RC="$(echo ${1} | cut -f 2 -d '=')" ;;
-        (--version=?*)    VERSION="$(echo ${1} | cut -f 2 -d '=')" ;;
-        (*)               echo "spack-downstream error: unrecognized option ${1}"; print_usage; exit 1 ;;
-    esac
-    shift
-done
-
-# Temporary Version Identifier
-if [ -z "$VERSION" ]; then
-    if [ ! -z "$NCAR_ENV_VERSION" ]; then
-        VERSION=$NCAR_ENV_VERSION
-    else
-	echo "spack-downstream error: No ncarenv detected. Load a ncarenv before attempting to run spack upstream or set a requested version with --version"
-    fi
-fi
-echo "ncarenv version: $VERSION"
-
-# Set install path
-if [ -z "$PREFIX" ]; then
-    INSTALL_DIR="/glade/work/$USER/spack-downstreams/$NCAR_HOST/$VERSION"
-else
-    INSTALL_DIR=$PREFIX
-fi
-echo "prefix: $INSTALL_DIR"
-
-# Clone repo
-clone_repo
-
-# Copy YAML files
-copy_yaml 
-
-# Modify bashrc
-echo "Spack has been successfully installed and configure for downstream use in: $INSTALL_DIR"
-
-if [ "$MODIFY_RC" = "True" ]; then
-    check_rc
-    modify_rc
-elif [ "$MODIFY_RC" = "False" ]; then
-    exit 0
-else
-    echo "Would you like this installer to automatically initialize spack at login by modifying .bashrc?"
-    echo "(y|n)"
-    while true; do
-        read MOD
-        if [ "$MOD" == 'y' ]; then
-            check_rc
-	    modify_rc
-            echo "Modification successful! Please restart your shell to apply changes"
-	    exit 0
-        elif [ "$MOD" == 'n' ]; then
-            echo "To initialize your shell for spack use please run the command:"
-            echo ". $INSTALL_DIR/share/spack/setup-env.sh"
-            exit 0
+install_downstream () {
+    # Temporary Version Identifier
+    if [ -z "$VERSION" ]; then
+        if [ ! -z "$NCAR_ENV_VERSION" ]; then
+            VERSION=$NCAR_ENV_VERSION
         else
-            echo "Please select (y)es|(n)o"
+	        echo "spack-downstream error: No ncarenv detected. Load a ncarenv before attempting to run spack upstream or set a requested version with --version"
         fi
-    done
+    fi
+    echo "ncarenv version: $VERSION"
+
+    # Set install path
+    if [ -z "$PREFIX" ]; then
+        INSTALL_DIR="/glade/work/$USER/spack-downstreams/$NCAR_HOST/$VERSION"
+    else
+        INSTALL_DIR=$PREFIX
+    fi
+    echo "prefix: $INSTALL_DIR"
+
+    # Clone repo
+    clone_repo
+
+    # Copy YAML files
+    copy_yaml 
+
+    # Modify bashrc
+    echo "Spack has been successfully installed and configure for downstream use in: $INSTALL_DIR"
+
+    if [ "$MODIFY_RC" = "True" ]; then
+        check_rc
+        modify_rc
+    elif [ "$MODIFY_RC" = "False" ]; then
+        exit 0
+    else
+        echo "Would you like this installer to automatically initialize spack at login by modifying .bashrc?"
+        echo "(y|n)"
+        while true; do
+            read MOD
+            if [ "$MOD" == 'y' ]; then
+                check_rc
+	            modify_rc
+                echo "Modification successful! Please restart your shell to apply changes"
+	            exit 0
+            elif [ "$MOD" == 'n' ]; then
+                echo "To initialize your shell for spack use please run the command:"
+                echo ". $INSTALL_DIR/share/spack/setup-env.sh"
+                exit 0
+            else
+                echo "Please select (y)es|(n)o"
+            fi
+        done
+    fi
+}
+
+# Main
+# Command parser
+case "${1}" in
+    (-h | --help) print_usage; exit 0 ;;
+    (install) __INSTALL=True; shift
+        while [ "$#" -gt 0 ]
+        do         
+            case "${1}" in
+                (-h | --help)       print_usage; exit 0 ;;
+                (-v | --verbose)    VERBOSE="True" ;;
+                (--prefix=?*)       PREFIX="$(echo ${1} | cut -f 2 -d '=')" ;;
+                (--modify-rc=?*)    MODIFY_RC="$(echo ${1} | cut -f 2 -d '=')" ;;
+                (--version=?*)      VERSION="$(echo ${1} | cut -f 2 -d '=')" ;;
+                (*)                 echo "spack-downstream install error: unrecognized option ${1}"; print_usage; exit 1 ;;
+            esac
+            shift
+        done
+        ;;
+#    (modify) __MODIFY=True; shift
+#        while [ "$#" -gt 0 ]
+#        do
+#            case "${1}" in
+#                (-h | --help)       print_usage; exit 0 ;;
+#                (-v | --verbose)    VERBOSE="True" ;;
+#                (--install-path=?*) RM_PATH="$(echo ${1} | cut -f 2 -d '=')" ;;
+#                (*)                 echo "spack-downstream remove error: unrecognized option ${1}"; print_usage; exit 1 ;;
+#            esac
+#            shift
+#        done
+#        ;;
+    (remove) __REMOVE=True; shift
+        while [ "$#" -gt 0 ]
+        do
+            case "${1}" in
+                (-h | --help)       print_usage; exit 0 ;;
+                (-v | --verbose)    VERBOSE="True" ;;
+                (--install-path=?*) RM_PATH="$(echo ${1} | cut -f 2 -d '=')" ;;
+                (--modify-rc=?*)    MODIFY_RC="$(echo ${1} | cut -f 2 -d '=')" ;;
+                (*)                 echo "spack-downstream remove error: unrecognized option ${1}"; print_usage; exit 1 ;;
+            esac
+            shift
+        done
+        ;;
+    (*)               echo "spack-downstream error: unrecognized option ${1}"; print_usage; exit 1 ;;
+esac
+
+if [ "$__INSTALL" == "True" ]; then
+    install_downstream
 fi
 
+if [ "$__REMOVE" == "True" ]; then
+    echo "Removing Spack upstreams..."
+    echo "$VERBOSE $RM_PATH"
+fi
