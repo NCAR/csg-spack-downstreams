@@ -24,7 +24,7 @@ log () {
 }
 
 clone_repo () {
-    log "git config --global --add safe.directory /glade/u/apps/gust/$VERSION/spack"
+    log "git config --global --add safe.directory /glade/u/apps/$NCAR_HOST/$VERSION/spack"
     log "cd /glade/u/apps/gust/$VERSION/spack"
     log "export GIT_COMMIT=$(git rev-parse HEAD)"
     log "cd - > /dev/null"
@@ -33,8 +33,8 @@ clone_repo () {
     log "git checkout $GIT_COMMIT"
     log "cd - > /dev/null"
 
-    git config --global --add safe.directory /glade/u/apps/gust/$VERSION/spack
-    cd /glade/u/apps/gust/$VERSION/spack
+    git config --global --add safe.directory /glade/u/apps/$NCAR_HOST/$VERSION/spack
+    cd /glade/u/apps/$NCAR_HOST/$VERSION/spack
     export GIT_COMMIT=$(git rev-parse HEAD)
     cd - > /dev/null
     git clone -c feature.manyFiles=true https://github.com/NCAR/csg-spack-fork $INSTALL_DIR
@@ -81,6 +81,12 @@ copy_yaml () {
 
 # Check for existing RC modifications from previous spack-downstream installs
 check_rc () {
+    # Check if bashrc exists. Create if not present.
+    if [ ! -f "~/.bashrc" ]; then
+        touch ~/.bashrc 
+    fi
+
+    # Check for existing spack downstream install if it exists prompt user to replace or skip.
     log export CHECK_INSTALL=$(egrep -c "SPACK DOWNSTREAMS INITIALIZE" ~/.bashrc)
     export CHECK_INSTALL=$(egrep -c "SPACK DOWNSTREAMS INITIALIZE" ~/.bashrc) 
     if [ "$CHECK_INSTALL" -ge "1" ]; then
@@ -108,12 +114,12 @@ modify_rc () {
 
     log "echo '# SPACK DOWNSTREAMS INITIALIZE' >> ~/.bashrc"
     log "echo 'export SPACK_DISABLE_LOCAL_CONFIG=true'"
-    log "echo '. $INSTALL_DIR/share/spack/setup-env.sh' >> ~/.bashrc"
+    log "echo '[ \$NCAR_HOST == $NCAR_HOST ] && . $INSTALL_DIR/share/spack/setup-env.sh' >> ~/.bashrc"
     log "echo '# SPACK DOWNSTREAMS DONE' >> ~/.bashrc"
 
     echo "# --SPACK DOWNSTREAMS INITIALIZE--" >> ~/.bashrc
     echo "export SPACK_DISABLE_LOCAL_CONFIG=true" >> ~/.bashrc
-    echo ". $INSTALL_DIR/share/spack/setup-env.sh" >> ~/.bashrc
+    echo "[ \$NCAR_HOST == '$NCAR_HOST' ] && . $INSTALL_DIR/share/spack/setup-env.sh" >> ~/.bashrc
     echo "# --SPACK DOWNSTREAMS DONE--" >> ~/.bashrc
 
     echo '...complete!'
