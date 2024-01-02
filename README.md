@@ -1,24 +1,24 @@
-# Spack Upstreams Installation Utility
-Repository containing a spack installation utility for the NCAR Gust Test System.
+# Spack Downstream Installation Utility
+Repository containing a chained Spack installation setup utility for the NCAR HPC Systems.
 
 ## Basic usage:
-./spack-upstream.sh
+./spack-downstream
 
-By default the application will install a compatable version of spack with the upstream installation in the users work directory. Users can specify the installation directory with the `--prefix=<install-path>` flag. 
+By default the application will install a compatable version of Spack with the upstream installation in the users work directory. Users can specify the installation directory with the `--downstream-root=PATH` flag.
 
-Once the installation has completed, spack-upstreams will attempt to modify the user's `.bashrc` to automatically load spack into the user's enviornment in login.
+Once the installation has completed, spack-downstreams will attempt to modify the user's `.bashrc` to automatically load Spack into the user's enviornment in login.
 If the user chooses to skip this option, on login they will need to run:
-`<install-directory>/share/spack/setup-env.sh`
+`. $SPACK_ROOT/share/spack/setup-env.sh`
 
 ## Optional flags:
 ```
-       -v | --verbose                   : print out each installation step to the terminal
-            --prefix=<install-path>     : specify spack installation location. Default: /glade/work/mtrahan/spack_version  
-            --modify-rc=<True|False>.   : modify .bashrc to load Spack at startup
-            --version=<ncarenv-version> : specify ncarenv version. Default: default
-       -h | --help                      : print this message
+    -h, --help                      print this message
+    --downstream-root=PATH          specify installation location for downstreams.
+                                    (default: /glade/work/$USER/spack-downstreams)
+    --modify-rc=<True|False>        modify your startup script to automatically load Spack at startup
+    --upstream-version=VERSION      specify alternate ncarenv version. (default: $NCAR_ENV_VERSION)"
+    -v, --verbose                   print out each installation step to the terminal
 ```
 
-## Know bugs:
-- No tcsh or csh support yet.
-
+## Known bugs and limitations:
+- RC modification can only be done when the downstream is created.
