@@ -5,7 +5,7 @@ Repository containing a chained Spack installation setup utility for the NCAR HP
 ./spack-downstream
 
 
-By default the application will install a compatible version of spack with the upstream installation in the users work directory. Users can specify the installation directory with the `--prefix=<install-path>` flag. 
+By default the application will install a compatible version of spack with the upstream installation in the users work directory. Users can specify the installation directory with the `--downstream-root=PATH` flag. 
 
 Once the installation has completed, spack-upstreams will attempt to modify the user's `.bashrc` to automatically load spack into the user's environment in login.
 
