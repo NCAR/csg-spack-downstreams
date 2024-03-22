@@ -202,15 +202,15 @@ echo -e "\nSpack has been successfully installed and configured for downstream u
 
 # Modify RC file if desired
 if [[ $SHELL == *csh ]]; then
-    SRC_FILE=sh
+    SRC_FILE=csh
     RCFILE=tcshrc
 else
-    SRC_FILE=csh
+    SRC_FILE=sh
     RCFILE=bashrc
 fi
 
 if [[ -z $MODIFY_RC ]]; then
-    echo -n "Would you like to automatically initialize Spack at login by modifying your .bashrc (y/N)? "
+    echo -n "Would you like to automatically initialize Spack at login by modifying your .$RCFILE (y/N)? "
 
     while true; do
         read MOD
