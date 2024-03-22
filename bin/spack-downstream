@@ -44,8 +44,11 @@ clone_repo () {
     log "git checkout $GIT_COMMIT"
     log "cd - > /dev/null"
 
-    git config --global --add safe.directory /glade/u/apps/$NCAR_HOST/$UPSTREAM_VERSION/spack
-    cd /glade/u/apps/$NCAR_HOST/$UPSTREAM_VERSION/spack
+    if ! grep -q $UPSTREAM_ROOT/spack <<< $(git config --global --get safe.directory); then
+        git config --global --add safe.directory $UPSTREAM_ROOT/spack
+    fi
+
+    cd $UPSTREAM_ROOT/spack
     export GIT_COMMIT=$(git rev-parse HEAD)
     cd - > /dev/null
     git clone -c feature.manyFiles=true https://github.com/NCAR/csg-spack-fork $INSTALL_DIR || exit 1
@@ -58,8 +61,8 @@ clone_repo () {
 # Copy system yaml information
 copy_yaml () {
     for file in config.yaml compilers.yaml mirrors.yaml packages.yaml repos.yaml modules.yaml; do
-        log "cp /glade/u/apps/$NCAR_HOST/$UPSTREAM_VERSION/config/$file $INSTALL_DIR/etc/spack"
-        cp /glade/u/apps/$NCAR_HOST/$UPSTREAM_VERSION/config/$file $INSTALL_DIR/etc/spack
+        log "cp $UPSTREAM_ROOT/config/$file $INSTALL_DIR/etc/spack"
+        cp $UPSTREAM_ROOT/config/$file $INSTALL_DIR/etc/spack
 
         if [ $file == modules.yaml ]; then
             log "sed -i '/ncar_.*\.lua/ s/ncar/user/' $INSTALL_DIR/etc/spack/$file"
@@ -70,8 +73,8 @@ copy_yaml () {
     # Disable Local Configuration
     export SPACK_DISABLE_LOCAL_CONFIG=true
 
-    log "$INSTALL_DIR/bin/spack config add 'upstreams:ncarenv-$UPSTREAM_VERSION:install_tree:/glade/u/apps/$NCAR_HOST/$UPSTREAM_VERSION/spack/opt/spack"
-    $INSTALL_DIR/bin/spack config add "upstreams:ncarenv-$UPSTREAM_VERSION:install_tree:/glade/u/apps/$NCAR_HOST/$UPSTREAM_VERSION/spack/opt/spack"
+    log "$INSTALL_DIR/bin/spack config add 'upstreams:ncarenv-$UPSTREAM_VERSION:install_tree:$UPSTREAM_ROOT/spack/opt/spack"
+    $INSTALL_DIR/bin/spack config add "upstreams:ncarenv-$UPSTREAM_VERSION:install_tree:$UPSTREAM_ROOT/spack/opt/spack"
 
 	log "$INSTALL_DIR/bin/spack config add 'modules:default:roots:lmod:${DOWNSTREAM_ROOT:-/glade/work/$USER/spack-downstreams}/$NCAR_HOST/modules/$UPSTREAM_VERSION'"
 	$INSTALL_DIR/bin/spack config add "modules:default:roots:lmod:${DOWNSTREAM_ROOT:-/glade/work/$USER/spack-downstreams}/$NCAR_HOST/modules/$UPSTREAM_VERSION"
@@ -174,10 +177,12 @@ do
 done
 
 # Temporary Version Identifier
+UPSTREAM_ROOT=/glade/u/apps/$NCAR_HOST/$UPSTREAM_VERSION
+
 if [ -z "$UPSTREAM_VERSION" ] || [ -z "$NCAR_HOST" ]; then
     >&2 echo "Error: No ncarenv detected. Load an ncarenv module before attempting to run this script."
     exit 1
-elif [ ! -d /glade/u/apps/$NCAR_HOST/$UPSTREAM_VERSION ]; then
+elif [ ! -d $UPSTREAM_ROOT ]; then
     >&2 echo "Error: No software stack found for ncarenv version $UPSTREAM_VERSION."
     exit 1
 fi
@@ -214,7 +219,7 @@ if [[ -z $MODIFY_RC ]]; then
         if [[ yes == ${MOD:-no}* ]]; then
             MODIFY_RC=yes
             break
-        elif [[ no == $MOD ]]; then
+        elif [[ no == $MOD* ]]; then
             break
         else
             echo -n "Please select (y)es or (n)o: "
