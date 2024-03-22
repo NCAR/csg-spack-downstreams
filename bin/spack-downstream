@@ -37,7 +37,7 @@ clone_repo () {
 
     log "git config --global --add safe.directory /glade/u/apps/$NCAR_HOST/$UPSTREAM_VERSION/spack"
     log "cd /glade/u/apps/$NCAR_HOST/$UPSTREAM_VERSION/spack"
-    log "export GIT_COMMIT=$(git rev-parse HEAD)"
+    log 'export GIT_COMMIT=$(git rev-parse HEAD)'
     log "cd - > /dev/null"
     log "git clone -c feature.manyFiles=true https://github.com/NCAR/csg-spack-fork $INSTALL_DIR"
     log "cd $INSTALL_DIR"
